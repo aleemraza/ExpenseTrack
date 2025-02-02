@@ -38,11 +38,8 @@ app.use(hpp());
 // ----------------APP USAGE END--------------//
 
 // ----------------API CALL AREA---------------//
-app.use('/api/flat/user',userRotes);
-
+app.use('/api/flat/user', userRotes);
 // ----------------API CALL AREA END---------------//
-
-
 
 // ----------------Export APP TO SERVER.JS----------------//
 module.exports = app;

@@ -4,7 +4,7 @@ const routes = express.Router();
 
 
 routes.route('/signup').post(user_Controler.SignUp);
-
+routes.route('/login').post(user_Controler.Login);
 
 
 
