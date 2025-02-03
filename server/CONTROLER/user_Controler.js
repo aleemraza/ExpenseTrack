@@ -1,12 +1,14 @@
 const User = require('../MODEL/userModel_Schema')
 const jwt_token = require('jsonwebtoken')
 const crypto = require('crypto')
-const {SignUp_token} = require('../utlis/SignUp_Token_G')
 const asyncHandler = require('../utlis/asyncHandler')
+const util = require('util')
+const promisify = util.promisify
+const {SignUp_token} = require('../utlis/SignUp_Token_G')
 
 
 
-exports.SignUp = asyncHandler(async(req,res)=>{
+exports.SignUp = asyncHandler(async(req,res,next)=>{
     const {name,email,password,passwordConfirm,role} = req.body;
     if(!name || !email || !password || !passwordConfirm || !role){
         return res.status(400).json({
@@ -52,9 +54,10 @@ exports.SignUp = asyncHandler(async(req,res)=>{
             newUser
         }
     });
+    // next()
 });
 
-exports.Login = asyncHandler(async(req,res)=>{
+exports.Login = asyncHandler(async(req,res, next)=>{
     const {email,password} = req.body;
     if(!email || !password){
         res.status(400).json({
@@ -118,3 +121,57 @@ exports.Login = asyncHandler(async(req,res)=>{
         }
     });
 });
+
+exports.Protected = async(req,res,next)=>{
+    let token ;
+    if(req.headers.authorization && req.headers.authorization.startsWith('Bearer')){
+        token = req.headers.authorization.split(' ')[1]
+    }
+    if(!token){
+        return res.status(400).json({
+            status: "fail",
+            message: "Token are not found"
+        })
+    }
+    try{
+        const decoded  = await promisify(jwt_token.verify)(token, process.env.JWT_TOkEN_KEY);
+        const current_user = await User.findById(decoded.id)
+        if(!current_user){
+            return res.status(401).json({
+                status: 'Failed',
+                message: 'The User belonging to this token no longer exists.',
+            });
+        }
+        const jwt_Time_Stamp_Change_password_token = decoded.iat;
+        if(current_user.ChangePassowrdAfter(jwt_Time_Stamp_Change_password_token)){
+            return res.status(401).json({
+                status: 'failed',
+                message: 'User recently changed password! Please log in again.',
+            });
+        }
+        req.user = current_user;
+        res.locals.user = current_user;
+        next();
+    }catch(erorr){
+        if (erorr.name === 'TokenExpiredError') {
+            message = 'Your token has expired! Please log in again to get access.';
+        } 
+        return res.status(401).json({
+            status: 'Failed',
+            message:"Invalid token! Please log in again to get access.",
+            error: erorr.message
+        });   
+
+    }
+}
+
+exports.Login_User = asyncHandler(async(req,res,next)=>{
+    const {name,id} = req.body;
+    if(!name || !id){
+        return res.status(400).json({
+            status: "fail",
+            message: "All fields are required"
+        })
+    }
+    
+})

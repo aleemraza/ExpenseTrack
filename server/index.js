@@ -16,7 +16,8 @@ const userRotes = require('./ROUTES/user_Routes')
 
 //----------------- Global error handler-------------//
 app.use((err, req, res, next) => {
-    res.status(err.status || 500).json({
+    console.error(err.stack);
+    return res.status(err.status || 500).json({
         status: 'fail',
         message: err.message || 'Internal Server Error',
     });
