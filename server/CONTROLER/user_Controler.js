@@ -2,6 +2,8 @@ const User = require('../MODEL/userModel_Schema')
 const jwt_token = require('jsonwebtoken')
 const crypto = require('crypto')
 const asyncHandler = require('../utlis/asyncHandler')
+const {sendEMail} = require('../utlis/nodeMailer')
+const {generateOTP} = require('../utlis/OTPgenrate')
 const util = require('util')
 const promisify = util.promisify
 const {SignUp_token} = require('../utlis/SignUp_Token_G')
@@ -16,15 +18,47 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
             message: "All fields are required"
         })
     }
-    // Create New User 
+    //Generate OTP
+    const otp = generateOTP()
+    // OTP valid for 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    // // Create New User with OTP (User remains unverified) 
     const newUser = await User.create({
         name,
         email,
         password,
         passwordConfirm,
-        role
-    })
-    const newuser_Token = SignUp_token(newUser._id)
+        role,
+        isVerified : false,
+        otp,
+        otpExpires
+    });
+    await sendEMail(email,otp)
+    res.status(200).json({
+        status: 'success',
+        message: 'Your Secure  6-Digit OTP for ExpenseTrack Account Verification  sent On email',
+    });
+    // next()
+});
+
+exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+        return res.status(400).json({ status: "fail", message: "User not found" });
+      }
+  
+    // Check if OTP matches and is not expired
+    if (user.otp !== otp || new Date() > user.otpExpires) {
+        return res.status(400).json({ status: "fail", message: "Invalid or expired OTP" });
+    }
+    // Mark user as verified
+    user.isVerified = true;
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save({ validateBeforeSave: false });
+
+    const newuser_Token = SignUp_token(user._id)
     if(!newuser_Token){
         return res.status(400).json({
             status: "fail",
@@ -34,7 +68,6 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
     const hours = parseInt(process.env.JWT_EXPRIES_IN, 10);
     const expiresInMilliseconds = hours * 60 * 60 * 1000;
     const expirationDate = new Date(Date.now() + expiresInMilliseconds);
-
     const cookieOptions = {
         expires: expirationDate,
         httpOnly: true,
@@ -45,17 +78,16 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
         cookieOptions.secure = true;
     }
     res.cookie('jwt', newuser_Token, cookieOptions)
-        newUser.password = undefined
-        newUser.passwordConfirm = undefined
+    user.password = undefined
+    user.passwordConfirm = undefined
     res.status(200).json({
         status: 'success',
-        message: 'Create User API HERE',
+        message: "Your email has been successfully verified! Welcome to ExpenseTrack",
         data:{
-            newUser
+            user
         }
     });
-    // next()
-});
+}) 
 
 exports.Login = asyncHandler(async(req,res, next)=>{
     const {email,password} = req.body;
@@ -74,7 +106,6 @@ exports.Login = asyncHandler(async(req,res, next)=>{
         });
         return;
     }
-
     const token = SignUp_token(current_user._id)
     if(!token){
         return  res.status(400).json({
@@ -164,7 +195,20 @@ exports.Protected = async(req,res,next)=>{
 
     }
 }
-
+// 
+exports.restricted = async(role)=>{
+    return (req,res,next)=>{
+        if(!req.user){
+            res.status(401).json({message:"You are not logged in!"})
+        }
+        if(req.user.role !== role){
+            return res.status(403).json({
+                    status:"failed",
+                    message: "you do not have permission to perform this action"
+                })
+        }
+    }
+} 
 exports.Login_User = asyncHandler(async(req,res,next)=>{
     const {name,id} = req.body;
     if(!name || !id){
@@ -174,4 +218,70 @@ exports.Login_User = asyncHandler(async(req,res,next)=>{
         })
     }
     
+})
+
+// we write updatePassword  
+exports.updatePassword  = asyncHandler(async(req,res,next)=>{
+    // 1) Get user from collection
+    const update_user_passowrd = await  User.findById(req.user.id).select('+password')
+    if(!(await update_user_passowrd.correctPassword(req.body.currentpassword, update_user_passowrd.password))){
+        return res.status(400).json({
+            status: "fail",
+            message: "Your current password is incorrect"
+        });
+    }
+    if (req.body.newpassword !== req.body.newconformpassword) {
+        return res.status(400).json({
+            status: "fail",
+            message: "New passwords do not match"
+        });
+    }
+ // 3) If so, update password
+    update_user_passowrd.password = req.body.newpassword;
+    update_user_passowrd.passwordConfirm = req.body.newconformpassword;
+    update_user_passowrd.passwordChangedAt = Date.now();
+    update_user_passowrd.isLoggedIn = false;
+    await update_user_passowrd.save()
+// 3) Clear the current JWT cookie (if using cookies)
+    res.cookie('jwt','logout', {
+        expires: new Date(Date.now() + 10 * 1000), // Expires in 10 seconds
+        httpOnly: true,
+        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',
+        sameSite: 'strict'
+    });
+
+    const token =  SignUp_token(update_user_passowrd.id)
+    const role  = update_user_passowrd.role;
+    if(!token){
+        return res.status(400).json({
+            status: "fail",
+            message: "Token not received"
+        });
+    }
+    res.status(200).json({
+        status: "success",
+        message: "Password updated successfully. Please log in again.",
+        token,
+        role
+    });
+})
+
+exports.logout = asyncHandler(async(req,res,next)=>{
+    const user = req.user
+    if(!user){
+        return res.status(404).json({
+            status: "failed",
+            message: "User not found"
+        });
+    }
+    user.isLoggedIn = false;
+    await user.save({validateBeforeSave:false});
+    res.cookie('jwt','logout',{
+        expires: new Date(Date.now() + 10 * 1000),
+        httpOnly: true
+    })
+    return res.status(200).json({
+        status: "success",
+        message: "Successfully logged out"
+    });
 })

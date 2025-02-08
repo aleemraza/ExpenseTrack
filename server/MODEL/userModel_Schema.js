@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         unique: true,
         required: [true, 'Please enter your email'],
-        lowercase: true,
+        // lowercase: true,
     },
     password: {
         type: String,
@@ -52,6 +52,9 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    isVerified: { type: Boolean, default: false },
+    otp: { type: String, required: false },
+    otpExpires: { type: Date, required: false },
     createdGroups: [
         {
             type: mongoose.Schema.Types.ObjectId,
