@@ -14,6 +14,28 @@ const path = require('path')
 const userRotes = require('./ROUTES/user_Routes')
 // ----------------END ROUTES--------------//
 
+//----------------- END Global error handler-------------//
+// ----------------APP USAGE--------------//
+app.use(express.json())
+app.use(cookieParser())
+app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true 
+}))
+app.use(bodyparser.json({ limit: '50mb', extended:true }));
+app.use(bodyparser.urlencoded({ limit: '50mb', extended: true  , parameterLimit:50000}));
+app.use(express.static('./public'))
+app.use("/profile", express.static('./profile'));
+app.use(morgan('dev'));
+app.use(helmet({crossOriginResourcePolicy:false}));
+app.use(mongosanitize())
+app.use(hpp());
+// ----------------APP USAGE END--------------//
+
+// ----------------API CALL AREA---------------//
+app.use('/api/flat/user', userRotes);
+// ----------------API CALL AREA END---------------//
+
 //----------------- Global error handler-------------//
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -22,25 +44,7 @@ app.use((err, req, res, next) => {
         message: err.message || 'Internal Server Error',
     });
 });
-//----------------- END Global error handler-------------//
-// ----------------APP USAGE--------------//
-app.use(express.json())
-app.use(cors())
-app.use('*', cors());
-app.use(bodyparser.json({ limit: '50mb', extended:true }));
-app.use(bodyparser.urlencoded({ limit: '50mb', extended: true  , parameterLimit:50000}));
-app.use(express.static('./public'))
-app.use("/profile", express.static('./profile'));
-app.use(morgan('dev'));
-app.use(helmet({crossOriginResourcePolicy:false}));
-app.use(mongosanitize())
-app.use(cookieParser())
-app.use(hpp());
-// ----------------APP USAGE END--------------//
-
-// ----------------API CALL AREA---------------//
-app.use('/api/flat/user', userRotes);
-// ----------------API CALL AREA END---------------//
+//-----------------END Global error handler-------------//
 
 // ----------------Export APP TO SERVER.JS----------------//
 module.exports = app;

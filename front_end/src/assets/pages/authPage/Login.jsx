@@ -1,21 +1,24 @@
 import React from 'react'
-
+import logo from '../../image/pic1.png'
+import log_image2 from '../../image/front.png'
+import {Link} from 'react-router-dom'
 const Login = () => {
   return (
     <>
+    <section>
     <div class="min-h-screen bg-gray-100 text-gray-900 flex justify-center">
-    <div class="max-w-screen-xl m-0 sm:m-10 bg-white shadow sm:rounded-lg flex justify-center flex-1">
+    <div class="max-w-screen-xl m-0 sm:m-10 bg-white shadow-2xl sm:rounded-lg flex justify-center flex-1">
         <div class="lg:w-1/2 xl:w-5/12 p-6 sm:p-12">
             <div>
-                <img src="https://storage.googleapis.com/devitary-image-host.appspot.com/15846435184459982716-LogoMakr_7POjrN.png"
+                <img src={logo}
                     class="w-32 mx-auto" />
             </div>
             <div class="mt-12 flex flex-col items-center">
                 <h1 class="text-2xl xl:text-3xl font-extrabold">
-                    Sign up
+                  Sign in
                 </h1>
                 <div class="w-full flex-1 mt-8">
-                    <div class="flex flex-col items-center">
+                    {/* <div class="flex flex-col items-center">
                         <button
                             class="w-full max-w-xs font-bold shadow-sm rounded-lg py-3 bg-indigo-100 text-gray-800 flex items-center justify-center transition-all duration-300 ease-in-out focus:outline-none hover:shadow focus:shadow-sm focus:shadow-outline">
                             <div class="bg-white p-2 rounded-full">
@@ -51,15 +54,7 @@ const Login = () => {
                                 Sign Up with GitHub
                             </span>
                         </button>
-                    </div>
-
-                    <div class="my-12 border-b text-center">
-                        <div
-                            class="leading-none px-2 inline-block text-sm text-gray-600 tracking-wide font-medium bg-white transform translate-y-1/2">
-                            Or sign up with e-mail
-                        </div>
-                    </div>
-
+                    </div> */}
                     <div class="mx-auto max-w-xs">
                         <input
                             class="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
@@ -68,7 +63,9 @@ const Login = () => {
                             class="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5"
                             type="password" placeholder="Password" />
                         <button
-                            class="mt-5 tracking-wide font-semibold bg-indigo-500 text-gray-100 w-full py-4 rounded-lg hover:bg-indigo-700 transition-all duration-300 ease-in-out flex items-center justify-center focus:shadow-outline focus:outline-none">
+                            class="mt-5 tracking-wide font-semibold  w-full py-4   flex items-center justify-center  bg-blue-500 text-white rounded-xl hover:bg-blue-600
+                    transition-transform duration-300 hover:scale-105
+                    dark:bg-blue-600 dark:hover:bg-blue-700">
                             <svg class="w-6 h-6 -ml-2" fill="none" stroke="currentColor" stroke-width="2"
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
@@ -76,7 +73,7 @@ const Login = () => {
                                 <path d="M20 8v6M23 11h-6" />
                             </svg>
                             <span class="ml-3">
-                                Sign Up
+                                Sign In
                             </span>
                         </button>
                         <p class="mt-6 text-xs text-gray-600 text-center">
@@ -90,15 +87,32 @@ const Login = () => {
                             </a>
                         </p>
                     </div>
+                    <div class="my-12 border-b text-center">
+                        <div
+                            class="leading-none px-2 inline-block text-sm text-gray-600 tracking-wide font-medium bg-white transform translate-y-1/2">
+                            Or Sign Up
+                        </div>
+                        
+                    </div>
+
+                    <p class="mt-6 text-xs text-gray-600 text-center">
+                            Don&#x27;t have an account yet?  
+                            <Link to="/signup"
+                        class="font-bold text-[#432DD7] hover:underline focus:text-gray-800 focus:outline-none">Sign
+                        up
+                    </Link>
+                </p>          
                 </div>
             </div>
         </div>
-        <div class="flex-1 bg-indigo-100 text-center hidden lg:flex">
-            <div class="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat">
+        <div class="flex-1 bg-[#F7F7F7] text-center hidden lg:flex">
+            <div class="m-12 xl:m-16 w-full bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url(${log_image2})` }}>
             </div>
         </div>
     </div>
 </div>
+    </section>
+    
     </>
   )
 }

@@ -10,9 +10,10 @@ const {SignUp_token} = require('../utlis/SignUp_Token_G')
 
 
 
+
 exports.SignUp = asyncHandler(async(req,res,next)=>{
-    const {name,email,password,passwordConfirm,role} = req.body;
-    if(!name || !email || !password || !passwordConfirm || !role){
+    const {name,email,password,passwordConfirm} = req.body;
+    if(!name || !email || !password || !passwordConfirm){
         return res.status(400).json({
             status: "fail",
             message: "All fields are required"
@@ -22,18 +23,41 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
     const otp = generateOTP()
     // OTP valid for 10 minutes
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+    // Hash OTP before saving
+    const hashedOTP = crypto.createHash("sha256").update(otp.toString()).digest("hex");
     // // Create New User with OTP (User remains unverified) 
+    
     const newUser = await User.create({
         name,
         email,
         password,
         passwordConfirm,
-        role,
         isVerified : false,
-        otp,
-        otpExpires
+        otp: hashedOTP,
+        otpExpires: otpExpires,
     });
+
+    // Generate a temporary session token (valid for OTP verification)
+    const sessionToken = jwt_token.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "10m" });
+    // Send Email to User
     await sendEMail(email,otp)
+
+    const cookieOptions = {
+        expires: new Date(Date.now() + 10 * 60 * 1000),
+        httpOnly: true,
+        secure: true,  
+        sameSite: "None",
+    };
+    res.cookie('sessionToken', sessionToken, cookieOptions)
+    // Set Cookie Options
+    // const cookieOptions = {
+    //     expires: new Date(Date.now() + 10 * 60 * 1000),
+    //     httpOnly: true,
+    //     secure: true, // Ensures cookies are only sent over HTTPS
+    //     sameSite: "None",
+    // };
+
+    // res.cookie('sessionToken', sessionToken, cookieOptions);
     res.status(200).json({
         status: 'success',
         message: 'Your Secure  6-Digit OTP for ExpenseTrack Account Verification  sent On email',
@@ -42,14 +66,22 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
 });
 
 exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
-    const { email, otp } = req.body;
-    const user = await User.findOne({ email });
+    const { otp } = req.body;
+    const sessionToken  = req.cookies.sessionToken;
+    if(!sessionToken){
+        return res.status(401).json({ status: "fail", message: "Unauthorized request" });
+    }
+    // Decode token to get userId
+
+    const decoded = jwt_token.verify(sessionToken, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
     if (!user) {
         return res.status(400).json({ status: "fail", message: "User not found" });
       }
+    const hashedOtp = crypto.createHash("sha256").update(otp.toString()).digest("hex");  
   
     // Check if OTP matches and is not expired
-    if (user.otp !== otp || new Date() > user.otpExpires) {
+    if (user.otp !== hashedOtp || Date() > user.otpExpires) {
         return res.status(400).json({ status: "fail", message: "Invalid or expired OTP" });
     }
     // Mark user as verified
@@ -57,35 +89,11 @@ exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
     user.otp = null;
     user.otpExpires = null;
     await user.save({ validateBeforeSave: false });
-
-    const newuser_Token = SignUp_token(user._id)
-    if(!newuser_Token){
-        return res.status(400).json({
-            status: "fail",
-            message: "Token Are Not Recived"
-        });
-    }
-    const hours = parseInt(process.env.JWT_EXPRIES_IN, 10);
-    const expiresInMilliseconds = hours * 60 * 60 * 1000;
-    const expirationDate = new Date(Date.now() + expiresInMilliseconds);
-    const cookieOptions = {
-        expires: expirationDate,
-        httpOnly: true,
-        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',  
-        sameSite: 'strict'
-    };
-    if (process.env.NODE_ENV === 'production') {
-        cookieOptions.secure = true;
-    }
-    res.cookie('jwt', newuser_Token, cookieOptions)
-    user.password = undefined
-    user.passwordConfirm = undefined
+    //Clear sessionToken 
+    res.clearCookie("sessionToken");
     res.status(200).json({
         status: 'success',
-        message: "Your email has been successfully verified! Welcome to ExpenseTrack",
-        data:{
-            user
-        }
+        message: "Your email has been successfully verified! Welcome to ExpenseTrack"
     });
 }) 
 
