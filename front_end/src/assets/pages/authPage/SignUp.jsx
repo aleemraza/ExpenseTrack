@@ -43,11 +43,10 @@ const SignUp = () => {
         }
         try{
             const {name,email,password,passwordConfirm} = userData;
-            // console.log(name,email,password,passwordConfirm)
             const res_results  = await dispatch(SignUp_API({name,email,password,passwordConfirm}))
             if(SignUp_API.fulfilled.match(res_results)){
                 toast.success('User Create Successfully',{
-                    position:'top-left'
+                    position:'top-right'
                 })
                 formRef.current.reset();
                 setUserData(form_Value)
@@ -55,9 +54,7 @@ const SignUp = () => {
                     navigate('/otpverify')
                 }, 5000)
             }else{
-                toast.error('Email Already Registers',{
-                    position:'top-left'
-                })
+                toast.error(res_results.payload || "SignUp  failed", { position: "top-right" });
                 console.log('Failed: ' + res_results.error.message);
             }
         }catch(error){

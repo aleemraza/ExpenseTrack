@@ -3,6 +3,7 @@ const jwt_token = require('jsonwebtoken')
 const crypto = require('crypto')
 const asyncHandler = require('../utlis/asyncHandler')
 const {sendEMail} = require('../utlis/nodeMailer')
+const {sendVerificationEmail, sendWelcomeEmail} = require('../mailtrap/emails')
 const {generateOTP} = require('../utlis/OTPgenrate')
 const util = require('util')
 const promisify = util.promisify
@@ -19,6 +20,10 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
             message: "All fields are required"
         })
     }
+    const userAlreadyExists  = await User.findOne({email})
+    if(userAlreadyExists){
+        return res.status(400).json({ success: false, message: "User already exists" });
+    }
     //Generate OTP
     const otp = generateOTP()
     // OTP valid for 10 minutes
@@ -26,50 +31,54 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
     // Hash OTP before saving
     const hashedOTP = crypto.createHash("sha256").update(otp.toString()).digest("hex");
     // // Create New User with OTP (User remains unverified) 
-    
-    const newUser = await User.create({
-        name,
-        email,
-        password,
-        passwordConfirm,
-        isVerified : false,
-        otp: hashedOTP,
-        otpExpires: otpExpires,
-    });
-
-    // Generate a temporary session token (valid for OTP verification)
-    const sessionToken = jwt_token.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "10m" });
-    // Send Email to User
-    await sendEMail(email,otp)
-
-    const cookieOptions = {
-        expires: new Date(Date.now() + 10 * 60 * 1000),
-        httpOnly: true,
-        secure: true,  
-        sameSite: "None",
-    };
-    res.cookie('sessionToken', sessionToken, cookieOptions)
-    // Set Cookie Options
-    // const cookieOptions = {
-    //     expires: new Date(Date.now() + 10 * 60 * 1000),
-    //     httpOnly: true,
-    //     secure: true, // Ensures cookies are only sent over HTTPS
-    //     sameSite: "None",
-    // };
-
-    // res.cookie('sessionToken', sessionToken, cookieOptions);
-    res.status(200).json({
-        status: 'success',
-        message: 'Your Secure  6-Digit OTP for ExpenseTrack Account Verification  sent On email',
-    });
-    // next()
+    // Send Email to User 
+    try{
+        await sendVerificationEmail(email,otp)
+    }catch(error){
+        return res.status(500).json({
+            status: "fail",
+            message: "Failed to send verification email. Please try again.",
+        });
+    }
+    try{
+        const newUser = await User.create({
+            name,
+            email,
+            password,
+            passwordConfirm,
+            isVerified : false,
+            otp: hashedOTP,
+            otpExpires: otpExpires,
+        });
+        // Generate a temporary session token (valid for OTP verification)
+        const sessionToken = jwt_token.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "10m" });
+        const cookieOptions = {
+            expires: new Date(Date.now() + 10 * 60 * 1000),
+            httpOnly: true,
+            secure: true,  
+            sameSite: "None",
+        };
+        res.cookie('sessionToken', sessionToken, cookieOptions)
+        res.status(200).json({
+            status: 'success',
+            message: 'Your Secure  6-Digit OTP for ExpenseTrack Account Verification  sent On email',
+        }); 
+    }catch(error){
+        return res.status(500).json({
+            status: "fail",
+            message: "User registration failed. Please try again.",
+        });
+    }
 });
 
 exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
     const { otp } = req.body;
     const sessionToken  = req.cookies.sessionToken;
     if(!sessionToken){
-        return res.status(401).json({ status: "fail", message: "Unauthorized request" });
+        return res.status(401).json({ 
+            status: "fail", 
+            message: "OTP has expired. Please request a new one." 
+        });
     }
     // Decode token to get userId
 
@@ -89,6 +98,15 @@ exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
     user.otp = null;
     user.otpExpires = null;
     await user.save({ validateBeforeSave: false });
+
+    try{
+        await sendWelcomeEmail(user.email, user.name);
+    }catch(error){
+        return res.status(500).json({
+            status: "fail",
+            message: "Failed to send Wellcome email. Please try again.",
+        });
+    }
     //Clear sessionToken 
     res.clearCookie("sessionToken");
     res.status(200).json({
@@ -114,6 +132,12 @@ exports.Login = asyncHandler(async(req,res, next)=>{
         });
         return;
     }
+    if (!current_user.isVerified) {
+        return res.status(403).json({
+            status: "fail",
+            message: "Your email is not verified. Please verify your email before logging in.",
+        });
+    }
     const token = SignUp_token(current_user._id)
     if(!token){
         return  res.status(400).json({
@@ -122,34 +146,19 @@ exports.Login = asyncHandler(async(req,res, next)=>{
         });
     }
      // New Method For  Token Expire 
-    const hours = parseInt(process.env.JWT_EXPRIES_IN, 10);
-    const expiresInMilliseconds = hours * 60 * 60 * 1000;
-    const expirationDate = new Date(Date.now() + expiresInMilliseconds);
-     // End of new Method 
-
-    const cookieOptions = {
-        expires: expirationDate,
-        httpOnly: true,
-        secure: req.secure || req.headers['x-forwarded-proto'] === 'https',  
-        sameSite: 'strict' // or 'lax', based on your CSRF protection needs
-    };
-    if (process.env.NODE_ENV === 'production') {
-        cookieOptions.secure = true;
-    }
+     const hours = parseInt(process.env.JWT_EXPRIES_IN, 10);
+     const expiresInMilliseconds = hours * 60 * 60 * 1000;
+     const expirationDate = new Date(Date.now() + expiresInMilliseconds);
+     
+     const cookieOptions = {
+         expires: expirationDate,
+         httpOnly: true,
+         secure: process.env.NODE_ENV === 'production', 
+         sameSite: 'None'
+     };
     res.cookie('jwt', token, cookieOptions)
-
     current_user.isLoggedIn = true;
     current_user.lastLogin = new Date();
-    try {
-        await current_user.save({ validateBeforeSave: false });
-    } catch (saveError) {
-        console.error("Validation error on save:", saveError);
-        return res.status(400).json({
-            status: "fail",
-            message: "Validation error",
-            error: saveError.message
-        });
-    }
     current_user.password = undefined
     res.status(200).json({
         status: 'success',

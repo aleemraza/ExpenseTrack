@@ -15,7 +15,7 @@ const OTPverify = () => {
         const enteredOtp = userOTP.join("");
         if (enteredOtp.length !== 6) {
             toast.error("Please enter a valid 6-digit OTP",{
-                position:'top-left'
+                position:'top-right'
             });
             return;
         }
@@ -24,19 +24,18 @@ const OTPverify = () => {
         const res_results  = await dispatch(OTP_verify_API({otp:enteredOtp}))
         if(OTP_verify_API.fulfilled.match(res_results)){
             toast.success('Your email has been successfully verified!',{
-                position:'top-left'
+                position:'top-right'
             })
             setTimeout(()=>{
                 navigate('/login')
             }, 5000)
         }else{
-            toast.error("Your email not verified!",{
-                position:'top-left'
-            })
+            toast.error(res_results.payload || "OTP Verify failed", { position: "top-right" });
             console.log('Failed: ' + res_results.error.message);
         }    
         }catch(error){
             console.error("Error", error.message)
+             toast.error("Something went wrong. Please try again.", { position: "top-right" });
         }
     }
 

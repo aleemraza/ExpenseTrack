@@ -1,8 +1,60 @@
-import React from 'react'
+import React,{useState,useRef} from 'react'
 import logo from '../../image/pic1.png'
 import log_image2 from '../../image/front.png'
 import {Link} from 'react-router-dom'
+import {useNavigate} from 'react-router-dom'
+import {useSelector, useDispatch} from 'react-redux'
+import {Login_API} from '../../../redux/API/api'
+import {ToastContainer , toast} from 'react-toastify'
+const form_Value ={
+    email: '',
+    password: '',
+}
 const Login = () => {
+    const dispatch = useDispatch()
+    const formRef = useRef()
+    const navigate = useNavigate()
+    const [userData , setUserData] = useState(form_Value);
+
+
+    //Get User Input 
+    const get_user_form_data = (e)=>{
+        setUserData({...userData , [e.target.name] : e.target.value })
+    }
+    const isFormValid = ()=>{
+        const {email,password} = userData;
+        return !!email && !!password; 
+    };
+
+    const User_Login = async(e)=>{
+            e.preventDefault();
+            if(!isFormValid()){
+                toast.error('Please fill in all required fields.',{
+                    position:'top-left'
+                })
+            }
+            try{
+                const {email,password} = userData;
+                // console.log(name,email,password,passwordConfirm)
+                const res_results  = await dispatch(Login_API({email,password}))
+                if(Login_API.fulfilled.match(res_results)){
+                    toast.success('User Login Successfully',{
+                        position:'top-right'
+                    })
+                    formRef.current.reset();
+                    setUserData(form_Value)
+                    setTimeout(()=>{
+                        navigate('/dashbaord')
+                    }, 5000)
+                }else{
+                    toast.error(res_results.payload || "Login failed", { position: "top-right" });
+                    console.log('Failed: ' + res_results.error.message);
+                }
+            }catch(error){
+                console.error("Error", error.message)
+                toast.error("Something went wrong. Please try again.", { position: "top-right" });
+            }
+    }
   return (
     <>
     <section>
@@ -56,13 +108,14 @@ const Login = () => {
                         </button>
                     </div> */}
                     <div class="mx-auto max-w-xs">
+                        <form  method='post' ref={formRef} >
                         <input
                             class="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white"
-                            type="email" placeholder="Email" />
+                            type="email" placeholder="Email" name='email' onChange={(e)=> get_user_form_data(e)} />
                         <input
                             class="w-full px-8 py-4 rounded-lg font-medium bg-gray-100 border border-gray-200 placeholder-gray-500 text-sm focus:outline-none focus:border-gray-400 focus:bg-white mt-5"
-                            type="password" placeholder="Password" />
-                        <button
+                            type="password" placeholder="Password" name='password' onChange={(e)=> get_user_form_data(e)} />
+                        <button onClick={User_Login}
                             class="mt-5 tracking-wide font-semibold  w-full py-4   flex items-center justify-center  bg-blue-500 text-white rounded-xl hover:bg-blue-600
                     transition-transform duration-300 hover:scale-105
                     dark:bg-blue-600 dark:hover:bg-blue-700">
@@ -76,6 +129,8 @@ const Login = () => {
                                 Sign In
                             </span>
                         </button>
+                        </form>
+                        
                         <p class="mt-6 text-xs text-gray-600 text-center">
                             I agree to abide by templatana's
                             <a href="#" class="border-b border-gray-500 border-dotted">
@@ -110,6 +165,7 @@ const Login = () => {
             </div>
         </div>
     </div>
+    <ToastContainer/>
 </div>
     </section>
     

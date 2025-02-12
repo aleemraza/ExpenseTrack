@@ -19,7 +19,7 @@ const userRotes = require('./ROUTES/user_Routes')
 app.use(express.json())
 app.use(cookieParser())
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: "http://192.168.100.204:3000",
     credentials: true 
 }))
 app.use(bodyparser.json({ limit: '50mb', extended:true }));
