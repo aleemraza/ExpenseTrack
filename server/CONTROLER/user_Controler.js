@@ -1,4 +1,5 @@
 const User = require('../MODEL/userModel_Schema')
+const Group = require('../MODEL/groupModel_Schema')
 const jwt_token = require('jsonwebtoken')
 const crypto = require('crypto')
 const asyncHandler = require('../utlis/asyncHandler')
@@ -13,6 +14,7 @@ const {SignUp_token} = require('../utlis/SignUp_Token_G')
 
 
 exports.SignUp = asyncHandler(async(req,res,next)=>{
+    const token = req.query.token || req.body.token;
     const {name,email,password,passwordConfirm} = req.body;
     if(!name || !email || !password || !passwordConfirm){
         return res.status(400).json({
@@ -28,8 +30,6 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
     const otp = generateOTP()
     // OTP valid for 10 minutes
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
-    // Hash OTP before saving
-    const hashedOTP = crypto.createHash("sha256").update(otp.toString()).digest("hex");
     // // Create New User with OTP (User remains unverified) 
     // Send Email to User 
     try{
@@ -40,6 +40,7 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
             message: "Failed to send verification email. Please try again.",
         });
     }
+    let newUser;
     try{
         const newUser = await User.create({
             name,
@@ -47,50 +48,53 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
             password,
             passwordConfirm,
             isVerified : false,
-            otp: hashedOTP,
+            otp: otp,
             otpExpires: otpExpires,
         });
-        // Generate a temporary session token (valid for OTP verification)
-        const sessionToken = jwt_token.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: "10m" });
-        const cookieOptions = {
-            expires: new Date(Date.now() + 10 * 60 * 1000),
-            httpOnly: true,
-            secure: true,  
-            sameSite: "None",
-        };
-        res.cookie('sessionToken', sessionToken, cookieOptions)
-        res.status(200).json({
-            status: 'success',
-            message: 'Your Secure  6-Digit OTP for ExpenseTrack Account Verification  sent On email',
-        }); 
     }catch(error){
         return res.status(500).json({
             status: "fail",
             message: "User registration failed. Please try again.",
         });
     }
+    if (token) {
+        try {
+            const decoded = jwt_token.verify(token, process.env.JWT_SECRET);
+            const { groupId } = decoded;
+
+            const group = await Group.findById(groupId);
+            if (group) {
+                const member = group.members.find(m => m.email === email);
+                if (member) {
+                    member.userId = newUser._id;
+                    member.status = "active";
+                    await group.save();
+                }
+            }
+        } catch (err) {
+            return res.status(400).json({
+                status: "fail",
+                message: "Invalid or expired invite token",
+            });
+        }
+    }
+    res.status(200).json({
+        status: 'success',
+        message: 'Your Secure  6-Digit OTP for ExpenseTrack Account Verification  sent On email',
+    }); 
 });
 
 exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
     const { otp } = req.body;
-    const sessionToken  = req.cookies.sessionToken;
-    if(!sessionToken){
-        return res.status(401).json({ 
-            status: "fail", 
-            message: "OTP has expired. Please request a new one." 
-        });
-    }
-    // Decode token to get userId
-
-    const decoded = jwt_token.verify(sessionToken, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId);
+    const user = await User.findOne({
+        otp:otp,
+        otpExpires: { $gt: new Date() },
+    });
     if (!user) {
         return res.status(400).json({ status: "fail", message: "User not found" });
       }
-    const hashedOtp = crypto.createHash("sha256").update(otp.toString()).digest("hex");  
-  
     // Check if OTP matches and is not expired
-    if (user.otp !== hashedOtp || Date() > user.otpExpires) {
+    if (user.otp !== otp || Date() > user.otpExpires) {
         return res.status(400).json({ status: "fail", message: "Invalid or expired OTP" });
     }
     // Mark user as verified
@@ -98,7 +102,6 @@ exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
     user.otp = null;
     user.otpExpires = null;
     await user.save({ validateBeforeSave: false });
-
     try{
         await sendWelcomeEmail(user.email, user.name);
     }catch(error){
@@ -107,8 +110,6 @@ exports.verifyOTP  = asyncHandler(async(req,res,next)=>{
             message: "Failed to send Wellcome email. Please try again.",
         });
     }
-    //Clear sessionToken 
-    res.clearCookie("sessionToken");
     res.status(200).json({
         status: 'success',
         message: "Your email has been successfully verified! Welcome to ExpenseTrack"
@@ -209,7 +210,6 @@ exports.Protected = async(req,res,next)=>{
             message:"Invalid token! Please log in again to get access.",
             error: erorr.message
         });   
-
     }
 }
 // 
@@ -227,14 +227,21 @@ exports.restricted = async(role)=>{
     }
 } 
 exports.Login_User = asyncHandler(async(req,res,next)=>{
-    const {name,id} = req.body;
-    if(!name || !id){
-        return res.status(400).json({
-            status: "fail",
-            message: "All fields are required"
-        })
+    const login_user = await User.findById({_id:req.user.id})
+    if (!login_user) {
+        return res.status(401).json({
+            status: "Failed",
+            message: "Please Login Again, User Not Found"
+        });
     }
-    
+    // If user is found, send a success response
+    res.status(200).json({
+        status: "success",
+        message: "Login User",
+        data: {
+            user: login_user
+        }
+    });
 })
 
 // we write updatePassword  
@@ -293,12 +300,12 @@ exports.logout = asyncHandler(async(req,res,next)=>{
     }
     user.isLoggedIn = false;
     await user.save({validateBeforeSave:false});
-    res.cookie('jwt','logout',{
-        expires: new Date(Date.now() + 10 * 1000),
-        httpOnly: true
-    })
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production"
+    });
     return res.status(200).json({
         status: "success",
-        message: "Successfully logged out"
+        message: "Logged out successfully"
     });
 })

@@ -46,21 +46,59 @@ const WELCOME_EMAIL_SUCCESS_TEMPLATE = `
 </head>
 <body>
   <div class="container">
-    <div class="header">🎉 Welcome to Our Service, {name}!</div>
+    <div class="header">🎉 Welcome to ExpenseTrack!</div>
     <div class="content">
-      <p>We're excited to have you on board. Please verify your email to activate your account.</p>
-      <p>Click the button below to complete your registration:</p>
+     <p>Hi {name},</p>
+      <p>We’re excited to have you on board. Get ready to explore our services and enjoy a seamless experience with us.</p>
+        <p>Click the button below to get started:</p>
+        
       <div style="text-align: center;">
-        // <a href="{verificationLink}" class="btn">Verify Email</a>
+         <a href="{verificationLink}" class="btn">Get Started</a>
       </div>
-      <p>If you didn't sign up, please ignore this email.</p>
-      <p>If you need help, contact our support team at <a href="mailto:support@yourapp.com">support@yourapp.com</a></p>
+      <p>If you have any questions, feel free to reach out to us at muhammadaleemraza1997@gmail.com.</p>
+      <p>If you need help, contact our support team at <a href="muhammadaleemraza1997@gmail.com">muhammadaleemraza1997@gmail.com</a></p>
     </div>
-    <div class="footer">This is an automated message, please do not reply.</div>
+    <div class="footer">&copy; 2024 ExpenseTrack!. All rights reserved.</div>
   </div>
 </body>
 </html>
 
 `;
 
-module.exports = {VERIFICATION_EMAIL_TEMPLATE,WELCOME_EMAIL_SUCCESS_TEMPLATE}
+
+const USER_INIVITE_EMAIL__TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Our Service</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; text-align: center; }
+    .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; border-radius: 10px 10px 0 0; color: white; font-size: 24px; }
+    .content { padding: 20px; text-align: left; }
+    .btn { display: inline-block; background: #4CAF50; color: white; padding: 10px 20px; margin-top: 20px; border-radius: 5px; text-decoration: none; font-weight: bold; }
+    .footer { margin-top: 20px; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">🎉 You're invited to join {groupname}</div>
+    <div class="content">
+     <p>Hi,</p>
+      <p>Click the link below to sign up and join:</p>
+        
+      <div style="text-align: center;">
+         <a href="{signupLink}" class="btn">Join Now</a>
+      </div>
+      <p>The link expires in 24 hours.</p>
+      <p>If you have any questions, feel free to reach out to us at muhammadaleemraza1997@gmail.com.</p>
+      <p>If you need help, contact our support team at <a href="muhammadaleemraza1997@gmail.com">muhammadaleemraza1997@gmail.com</a></p>
+    </div>
+    <div class="footer">&copy; 2024 ExpenseTrack!. All rights reserved.</div>
+  </div>
+</body>
+</html>
+`
+module.exports = {VERIFICATION_EMAIL_TEMPLATE,WELCOME_EMAIL_SUCCESS_TEMPLATE,USER_INIVITE_EMAIL__TEMPLATE}

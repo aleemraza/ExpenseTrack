@@ -82,7 +82,53 @@ export const Login_API = createAsyncThunk('auth/Login_API',async({email,password
     }catch(error){
         return thunkAPI.rejectWithValue(error.message)
     }
+});
+
+
+export const Login_User_API = createAsyncThunk('auth/Login_User_API',async( thunkAPI)=>{
+    try{
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${USER_API_URL}/loginuser`,{
+            method:'GET',
+            headers:{
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+        const res_result = await res.json()
+        if(res.ok){
+            const role = res_result.data?.user?.role;
+            return { ...res_result,role };
+        }else{
+            return thunkAPI.rejectWithValue(res_result.message || "User Not Found");
+        } 
+    }catch(error){
+        return thunkAPI.rejectWithValue(error.message)
+    }
+});
+
+export const Logout_API = createAsyncThunk('auth/Logout_API',async(thunkAPI)=>{
+    try{
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${USER_API_URL}/logout`,{
+            method:'GET',
+            headers:{
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        })
+        const res_result = await res.json()
+        if(res.ok){
+        }else{
+            return thunkAPI.rejectWithValue(res_result.message || "Logout failed");
+        } 
+    }catch(error){
+        return thunkAPI.rejectWithValue(error.message)
+    }
 })
+
 
 const initialState = {
     user: null,
@@ -156,6 +202,42 @@ const API_Handel_Slice = createSlice({
             state.isError = true;
             state.errorMessage = action.payload || 'Login Failed';
         })
+        // Logout API
+        .addCase(Logout_API.pending, (state)=>{
+            state.isLoading = true;
+            state.isError = false;
+            state.errorMessage = null;
+          })
+        .addCase(Logout_API.fulfilled,(state,action)=>{
+            state.isLoading = false;
+            state.user = null;
+            state.token = null;
+            state.isAuthenticated = false;
+            state.role = null;
+            localStorage.removeItem('token');
+          })
+        .addCase(Logout_API.rejected,(state,action)=>{
+          state.isLoading = false;
+          state.isError = true;
+          state.errorMessage = action.payload;
+        })
+        // Current User Login
+        .addCase(Login_User_API.pending, (state)=>{
+            state.isLoading = true;
+            state.isError = false;
+            state.errorMessage = null;
+          })
+        .addCase(Login_User_API.fulfilled,(state,action)=>{
+            state.isLoading = false;
+            state.currentUser = action.payload;
+            state.isAuthenticated= true;
+            state.role = action.payload.role;
+          })
+        .addCase(Login_User_API.rejected,(state,action)=>{
+            state.isLoading = false;
+            state.isError = true;
+            state.errorMessage = action.payload;
+          })
     }
 })
 export default API_Handel_Slice.reducer;

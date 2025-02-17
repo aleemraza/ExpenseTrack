@@ -52,7 +52,7 @@ const SignUp = () => {
                 setUserData(form_Value)
                 setTimeout(()=>{
                     navigate('/otpverify')
-                }, 5000)
+                }, 3000)
             }else{
                 toast.error(res_results.payload || "SignUp  failed", { position: "top-right" });
                 console.log('Failed: ' + res_results.error.message);

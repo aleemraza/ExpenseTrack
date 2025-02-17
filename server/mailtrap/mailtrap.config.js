@@ -12,6 +12,6 @@ const transporter = nodemailer.createTransport({
 });
 const mailOptions = {
     email: process.env.EMAIL_USER,
-    name : "The ExpenseTrack Team"
+    name : "ExpenseTrack Team"
 }
 module.exports = {transporter, mailOptions}
