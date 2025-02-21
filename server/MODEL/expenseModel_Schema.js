@@ -30,7 +30,7 @@ const expense_Schema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId,
             ref: 'User',
             required: true,
-            unique: true,
+            
           },
           amount: {
             type: Number,
@@ -38,7 +38,6 @@ const expense_Schema = new mongoose.Schema({
           },
         },
       ],
-
 });
 
 module.exports = mongoose.model('Expense', expense_Schema)

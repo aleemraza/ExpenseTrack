@@ -3,7 +3,7 @@ import {createSlice, createAsyncThunk,} from '@reduxjs/toolkit'
 // BASE_URL OF OVER API
 const USER_API_URL = "http://192.168.100.204:8080/api/flat/user";
 // API AREA
-export const SignUp_API = createAsyncThunk('auth/SignUp', async({name,email,password,passwordConfirm}, thunkAPI)=>{
+export const SignUp_API = createAsyncThunk('auth/SignUp', async({name,email,password,passwordConfirm,token}, thunkAPI)=>{
     try{
         const res = await fetch(`${USER_API_URL}/signup`,{
             method: 'POST',
@@ -11,6 +11,7 @@ export const SignUp_API = createAsyncThunk('auth/SignUp', async({name,email,pass
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                token,
                 name,
                 email,
                 password,

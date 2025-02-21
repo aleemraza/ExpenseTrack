@@ -23,6 +23,9 @@ const SignUp = () => {
     const formRef = useRef()
     const navigate = useNavigate()
     const [userData , setUserData] = useState(form_Value);
+    // token get from urls
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get("token");
 
     //Get User Input 
     const get_user_form_data = (e)=>{
@@ -43,7 +46,7 @@ const SignUp = () => {
         }
         try{
             const {name,email,password,passwordConfirm} = userData;
-            const res_results  = await dispatch(SignUp_API({name,email,password,passwordConfirm}))
+            const res_results  = await dispatch(SignUp_API({name,email,password,passwordConfirm,token}))
             if(SignUp_API.fulfilled.match(res_results)){
                 toast.success('User Create Successfully',{
                     position:'top-right'

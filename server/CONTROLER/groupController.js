@@ -4,8 +4,8 @@ const jwt_token = require('jsonwebtoken')
 const {send_User_Invite_Email} = require('../mailtrap/emails')
 
 exports.Create_Group = asyncHandler(async(req,res,next)=>{
-    const {name} = req.body;
-    if (!name) {
+    const {Groupname,totalBudget} = req.body;
+    if (!Groupname) {
         return res.status(400).json({ message: 'Please provide a group name' });
     }
     userId = req.user.id;
@@ -13,7 +13,7 @@ exports.Create_Group = asyncHandler(async(req,res,next)=>{
         return res.status(400).json({ message: 'User Id and Email Not Found' });
     }
     const newGroup = new Group({
-        name,
+        Groupname,
         createdBy: userId,
         members: [
             {
@@ -23,6 +23,7 @@ exports.Create_Group = asyncHandler(async(req,res,next)=>{
                 status: 'active',
             },
         ],
+        totalBudget:totalBudget
     });
    await newGroup.save();
     res.status(200).json({
@@ -36,7 +37,6 @@ exports.Create_Group = asyncHandler(async(req,res,next)=>{
 
 exports.group_invite = asyncHandler(async(req,res,next)=>{
     const {email} = req.body;
-    console.log(email)
     const {groupId} = req.params;
     const userId = req.user.id;
     if(!email){
@@ -66,3 +66,4 @@ exports.group_invite = asyncHandler(async(req,res,next)=>{
         message: `Invitation sent to ${email}`,
     });
 })
+

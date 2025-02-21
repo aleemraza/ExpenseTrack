@@ -14,7 +14,10 @@ const {SignUp_token} = require('../utlis/SignUp_Token_G')
 
 
 exports.SignUp = asyncHandler(async(req,res,next)=>{
-    const token = req.query.token || req.body.token;
+    const token =  req.body.token;  
+    if (!token) {
+        return res.status(400).json({ status: "fail", message: "Token is missing" });
+    }
     const {name,email,password,passwordConfirm} = req.body;
     if(!name || !email || !password || !passwordConfirm){
         return res.status(400).json({
@@ -42,7 +45,7 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
     }
     let newUser;
     try{
-        const newUser = await User.create({
+        newUser = await User.create({
             name,
             email,
             password,
@@ -61,11 +64,11 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
         try {
             const decoded = jwt_token.verify(token, process.env.JWT_SECRET);
             const { groupId } = decoded;
-
             const group = await Group.findById(groupId);
             if (group) {
-                const member = group.members.find(m => m.email === email);
+                const member = group.members.find(m => m.email.toLowerCase() === email.toLowerCase());
                 if (member) {
+                    console.log("Updating member status...");
                     member.userId = newUser._id;
                     member.status = "active";
                     await group.save();

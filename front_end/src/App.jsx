@@ -16,6 +16,7 @@ import User_Report from './assets/pages/dashbaord/rolePages/userPages/User_Repor
 
 import { useDispatch, useSelector } from 'react-redux';
 import {Login_User_API} from './redux/API/api'
+import ContactUs from './assets/pages/ContactUs'
 function App() {
   const dispatch = useDispatch();
   const {token,role} = useSelector((state) => state.auth);
@@ -29,6 +30,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path='/' element={<Home/>}/>
+        <Route path='/contactus' element={<ContactUs/>}/>
         <Route path='/login' element={<Login/>}/>
         <Route path='/signup' element={<SignUp/>}/>
         <Route path='/otpverify' element={<ProtectedRoute allowedRoles={['user']}><OTPverify/></ProtectedRoute>}/>

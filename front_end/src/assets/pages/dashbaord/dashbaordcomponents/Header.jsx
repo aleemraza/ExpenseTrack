@@ -54,7 +54,7 @@ const Header = ({ setSidebarOpen, sidebarOpen, userDropdown, setUserDropdown }) 
     },[])
   return (
     <>
-    <header className="h-14 bg-gray-100 top-0 w-full fixed shadow flex justify-between items-center px-10 z-40">
+    <header className="h-14 bg-[#FFFFFF] top-0 w-full fixed shadow flex justify-between items-center px-10 z-40">
             <div className="flex items-center gap-x-14">
               <div className="w-40">
                 <h2 className="text-md font-bold">{user.name}</h2>

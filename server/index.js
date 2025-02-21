@@ -13,6 +13,8 @@ const path = require('path')
 // ----------------IMPORT ROUTES--------------//
 const userRotes = require('./ROUTES/user_Routes')
 const groupRoutes = require('./ROUTES/group_Routes')
+const expenseRoutes = require('./ROUTES/expenseRoutes')
+
 // ----------------END ROUTES--------------//
 
 //----------------- END Global error handler-------------//
@@ -36,6 +38,7 @@ app.use(hpp());
 // ----------------API CALL AREA---------------//
 app.use('/api/flat/user', userRotes);
 app.use('/api/flat/group', groupRoutes)
+app.use('/api/flat/expense', expenseRoutes)
 // ----------------API CALL AREA END---------------//
 
 //----------------- Global error handler-------------//
