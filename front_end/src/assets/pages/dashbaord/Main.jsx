@@ -79,110 +79,21 @@ const Main = () => {
       {/* Main Section */}
       <main className="min-h-screen w-full absolute top-14 flex bg-[#E5E7EB] overflow-y-auto">
         {/* Sidebar */}
-        {/* <aside
-            id="sidebar"
-            className={`${
-                sidebarOpen ? "w-[240px]" : "w-[60px]"
-            } h-[calc(100vh-120px)] fixed shadow overflow-hidden transition-all duration-500 ease-in-out bg-[#E5E7EB] z-30`}
-            >
-            <div className="flex flex-col justify-between h-full">
-                <ul className="flex flex-col gap-1 mt-2">
-                {[
-                    { icon: <IoHomeOutline />, label: "Dashboard" },
-                    { icon: <FaRegFile />, label: "Reports" },
-                ].map((item, index) => (
-                    <li key={index} className="text-gray-500 hover:bg-gray-100 hover:text-gray-900">
-                    <a className="w-full flex items-center py-3 px-3" href="#">
-                        <span className="text-xl px-2">{item.icon}</span>
-                        {sidebarOpen && <span className="pl-2">{item.label}</span>}
-                    </a>
-                    </li>
-                ))}
-                </ul>
-
-                <ul className="flex flex-col gap-1 mt-2">
-                <li className="text-gray-500 hover:bg-gray-100 hover:text-gray-900">
-                    <a className="w-full flex items-center py-3 px-3" href="#">
-                    <span className="text-xl px-2"><IoIosLogOut /></span>
-                    {sidebarOpen && <span className="pl-2">Logout</span>}
-                    </a>
-                </li>
-                </ul>
-            </div>
-        </aside> */}
         <AsideBar
           sidebarOpen={sidebarOpen}
         />
 
         {/* Main Content */}
         <section
-          className={`w-full transition-all duration-500 ease-in-out ${
+          className={`w-full transition-all duration-500 ease-in-out bg-[#F3F4F6] ${
             sidebarOpen ? "ml-[240px]" : "ml-[60px]"
-          } p-5`}
-        >    
-          {/* User Summary */}
-          {/* <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[
-              { title: "Total Users", count: 100, color: "gray" },
-              { title: "Total Active Users", count: 65, color: "green" },
-              { title: "Total Inactive Users", count: 30, color: "yellow" },
-              { title: "Deleted Users", count: 5, color: "red" },
-            ].map((item, index) => (
-              <div
-                key={index}
-                className="bg-slate-50 p-5 rounded-md flex justify-between items-center shadow"
-              >
-                <div>
-                  <h3 className="font-bold">{item.title}</h3>
-                  <p className="text-gray-500">{item.count}</p>
-                </div>
-                <i
-                  className={`fa-solid fa-users p-4 bg-${item.color}-200 rounded-md`}
-                ></i>
-              </div>
-            ))}
-          </div> */}
-
-          {/* <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
-                <div className="m-2 shadow-md p-40 bg-amber-300">
-                    <h2 className="text-xl p-2">Bar Chart</h2>
-                    <div id="chart" className="w-full "></div>
-                </div>
-                <div className="overflow-x-auto m-2 shadow-md">
-                    
-                </div>
-          </div> */}
-
-          {/* <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-              
-                <div className="m-2 lg:col-span-1 shadow-md p-40">
-                    <h2 className="text-xl p-2">Pie Chart</h2>
-                    <div id="pie_chart" className="w-full"></div>
-                </div>
-
-                <div className="m-2 lg:col-span-2 shadow-md">
-                    <h2 className="text-xl p-2">Candle Stick Chart</h2>
-                    <div id="candle_chart" className="w-full"></div>
-                </div>
-            </div> */}
-
-            {/* <div className="grid grid-cols-1">
-                
-                <div className="m-2 shadow-md p-40">
-                    <h2 className="text-xl p-2">Heatmap Chart</h2>
-                    <div id="heatmap_chart" className="w-full"></div>
-                </div>
-            </div> */}
+          } p-3`}
+        >   
             <div>
             <Outlet/>
             </div>
         </section>
       </main>
-
-      {/* Footer */}
-      {/* <footer className="bg-gray-50 p-5 bottom-0 fixed w-full z-40">
-        <p className="text-center">Copyright @2023</p>
-      </footer> */}
       <Footer/>
     </div>
     </>

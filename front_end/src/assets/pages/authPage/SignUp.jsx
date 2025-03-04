@@ -10,6 +10,7 @@ import {SignUp_API} from '../../../redux/API/api'
 import {ToastContainer , toast} from 'react-toastify'
 
 
+
 //Collected form Value
 const form_Value ={
     name: '',

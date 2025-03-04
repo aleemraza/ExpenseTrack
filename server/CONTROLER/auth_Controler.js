@@ -14,11 +14,7 @@ const {SignUp_token} = require('../utlis/SignUp_Token_G')
 
 
 exports.SignUp = asyncHandler(async(req,res,next)=>{
-    const token =  req.body.token;  
-    if (!token) {
-        return res.status(400).json({ status: "fail", message: "Token is missing" });
-    }
-    const {name,email,password,passwordConfirm} = req.body;
+    const {name,email,password,passwordConfirm,token} = req.body;
     if(!name || !email || !password || !passwordConfirm){
         return res.status(400).json({
             status: "fail",

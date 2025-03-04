@@ -5,7 +5,7 @@ import { FaRegFile } from "react-icons/fa";
 export const user_Menu = [
     {
       icon: <IoHomeOutline size={30} />,
-      label: 'Home',
+      label: 'Dashbaord',
       path: '/userdashbaord/userhome',
 
     },

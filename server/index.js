@@ -11,7 +11,7 @@ const mongosanitize = require('express-mongo-sanitize')
 const path = require('path')
 // ----------Import Required Module END-------------//
 // ----------------IMPORT ROUTES--------------//
-const userRotes = require('./ROUTES/user_Routes')
+const authRoutes = require('./ROUTES/auth_Routes')
 const groupRoutes = require('./ROUTES/group_Routes')
 const expenseRoutes = require('./ROUTES/expenseRoutes')
 
@@ -36,7 +36,7 @@ app.use(hpp());
 // ----------------APP USAGE END--------------//
 
 // ----------------API CALL AREA---------------//
-app.use('/api/flat/user', userRotes);
+app.use('/api/flat/user', authRoutes);
 app.use('/api/flat/group', groupRoutes)
 app.use('/api/flat/expense', expenseRoutes)
 // ----------------API CALL AREA END---------------//

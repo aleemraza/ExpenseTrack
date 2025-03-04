@@ -17,6 +17,7 @@ import User_Report from './assets/pages/dashbaord/rolePages/userPages/User_Repor
 import { useDispatch, useSelector } from 'react-redux';
 import {Login_User_API} from './redux/API/api'
 import ContactUs from './assets/pages/ContactUs'
+import ExpenseDeatils from './assets/pages/dashbaord/rolePages/userPages/ExpenseDeatils'
 function App() {
   const dispatch = useDispatch();
   const {token,role} = useSelector((state) => state.auth);
@@ -39,13 +40,12 @@ function App() {
         <Route path='/userdashbaord' element={<Main/>}>
           <Route path='userhome' element={<ProtectedRoute allowedRoles={['user']}><UserHome/></ProtectedRoute>}/>
           <Route path='userreport' element={<ProtectedRoute allowedRoles={['user']}><User_Report/></ProtectedRoute>}/>
+          <Route path='expenses_deatils/:groupId' element={<ProtectedRoute allowedRoles={['user']}><ExpenseDeatils/></ProtectedRoute>}/>
         </Route>
         {/* Admin Role */}
         <Route path='/admindashbaord' element={<Main/>}>
           <Route path='adminhome' element={<ProtectedRoute allowedRoles={['admin']}><AdminHome/></ProtectedRoute>}/>
         </Route>
-
-        {/* <Route path='/dashbaord' element={<ProtectedRoute allowedRoles={['user']}><Main/></ProtectedRoute>}/> */}
         <Route path='*' element={<Page_Not_Found/>}/>
       </Routes>
     </BrowserRouter>

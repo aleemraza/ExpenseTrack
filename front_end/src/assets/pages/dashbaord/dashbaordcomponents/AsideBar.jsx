@@ -47,7 +47,7 @@ const AsideBar = ({sidebarOpen}) => {
                 id="sidebar"
                 className={`${
                     sidebarOpen ? "w-[240px]" : "w-[60px]"
-                } h-[calc(100vh-120px)] fixed shadow overflow-hidden transition-all duration-500 ease-in-out bg-[#E5E7EB] z-30`}
+                } h-[calc(100vh-120px)] fixed shadow overflow-hidden transition-all duration-500 ease-in-out bg-[#FFFFFF] z-30`}
                 >
                 <div className="flex flex-col justify-between h-full">
                     <ul className="flex flex-col gap-1 mt-2">
