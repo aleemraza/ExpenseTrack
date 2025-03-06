@@ -14,6 +14,7 @@ const path = require('path')
 const authRoutes = require('./ROUTES/auth_Routes')
 const groupRoutes = require('./ROUTES/group_Routes')
 const expenseRoutes = require('./ROUTES/expenseRoutes')
+const user_Routes  =  require('./ROUTES/user_Routes')
 
 // ----------------END ROUTES--------------//
 
@@ -39,6 +40,7 @@ app.use(hpp());
 app.use('/api/flat/user', authRoutes);
 app.use('/api/flat/group', groupRoutes)
 app.use('/api/flat/expense', expenseRoutes)
+app.use('/api/flat/userDeatils', user_Routes)
 // ----------------API CALL AREA END---------------//
 
 //----------------- Global error handler-------------//

@@ -1,12 +1,12 @@
 import React from 'react'
-
+import {useParams} from 'react-router-dom'
 const Add_Memeber = () => {
+  const {groupId} = useParams()
   return (
     <>
-
+{groupId}
 <div class="relative  bg-gray-100">
     <div class="bg-white rounded-xl shadow-md overflow-hidden">
-  
       <div class="p-6 border-b border-gray-200">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between">
           <div>

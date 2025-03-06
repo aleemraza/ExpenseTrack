@@ -101,4 +101,45 @@ const USER_INIVITE_EMAIL__TEMPLATE = `
 </body>
 </html>
 `
-module.exports = {VERIFICATION_EMAIL_TEMPLATE,WELCOME_EMAIL_SUCCESS_TEMPLATE,USER_INIVITE_EMAIL__TEMPLATE}
+
+const PAYMENT_ADDED_EMAIL_TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Confirmation</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f4f4; text-align: center; }
+    .container { max-width: 600px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0px 0px 10px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(to right, #4CAF50, #45a049); padding: 20px; border-radius: 10px 10px 0 0; color: white; font-size: 24px; }
+    .content { padding: 20px; text-align: left; }
+    .btn { display: inline-block; background: #4CAF50; color: white; padding: 10px 20px; margin-top: 20px; border-radius: 5px; text-decoration: none; font-weight: bold; }
+    .footer { margin-top: 20px; font-size: 12px; color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">💰 Payment Successfully Added</div>
+    <div class="content">
+      <p>Hi {username},</p>
+      <p>Your payment has been successfully added to the group <b>{groupname}</b>.</p>
+      
+      <p><strong>Amount Added:</strong> $<b>{amount}</b></p>
+      <p><strong>Total Contribution:</strong> $<b>{totalAmount}</b></p>
+      <p><strong>Group Total Budget:</strong> $<b>{groupBudget}</b></p>
+
+      <p>Thank you for your contribution!</p>
+      
+      <div style="text-align: center;">
+        <a href="{dashboardLink}" class="btn">View Details</a>
+      </div>
+
+      <p>If you have any questions, feel free to contact us at <a href="mailto:muhammadaleemraza1997@gmail.com">muhammadaleemraza1997@gmail.com</a></p>
+    </div>
+    <div class="footer">&copy; 2024 ExpenseTrack!. All rights reserved.</div>
+  </div>
+</body>
+</html>
+`
+module.exports = {VERIFICATION_EMAIL_TEMPLATE,WELCOME_EMAIL_SUCCESS_TEMPLATE,USER_INIVITE_EMAIL__TEMPLATE, PAYMENT_ADDED_EMAIL_TEMPLATE}

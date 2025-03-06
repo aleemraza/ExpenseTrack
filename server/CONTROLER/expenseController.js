@@ -36,14 +36,6 @@ exports.CreateExpense = asyncHandler(async(req,res)=>{
         userId: member.userId ? member.userId._id : null,
         amount: contributingMemberIds.has(member.userId._id.toString()) ? sharePerContributingMember : 0,
     }));
-    // old logic 
-    // const contributors = group.members.map(member => ({
-    //     userId: member.userId ? member.userId._id : null,
-    //     amount: contributingMembers.some(contributing => contributing.userId._id.toString() === member.userId._id.toString()) 
-    //             ? sharePerContributingMember 
-    //             : 0,
-    // }));
-
     // Deduct from total collection
     group.totalBudget -= amount;
     await group.save();

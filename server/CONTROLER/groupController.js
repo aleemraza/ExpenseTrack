@@ -2,10 +2,12 @@ const Group = require('../MODEL/groupModel_Schema')
 const User = require('../MODEL/userModel_Schema')
 const asyncHandler = require('../utlis/asyncHandler')
 const jwt_token = require('jsonwebtoken')
-const {send_User_Invite_Email} = require('../mailtrap/emails')
+const {send_User_Invite_Email,send_PAYMENT_ADDED_EMAIL} = require('../mailtrap/emails')
 
+
+//Create Expensis  Group 
 exports.Create_Group = asyncHandler(async(req,res,next)=>{
-    const {Groupname,totalBudget} = req.body;
+    const {Groupname} = req.body;
     if (!Groupname) {
         return res.status(400).json({ message: 'Please provide a group name' });
     }
@@ -19,12 +21,12 @@ exports.Create_Group = asyncHandler(async(req,res,next)=>{
         members: [
             {
                 userId:user_Id,
+                name:req.user.name,
                 email: req.user.email,
                 role: 'creator',
                 status: 'active',
             },
         ],
-        totalBudget:totalBudget
     });
    await newGroup.save();
     res.status(200).json({
@@ -36,6 +38,7 @@ exports.Create_Group = asyncHandler(async(req,res,next)=>{
     }); 
 })
 
+//Invite User By email To add Groups 
 exports.group_invite = asyncHandler(async(req,res,next)=>{
     const {email} = req.body;
     const {groupId} = req.params;
@@ -71,6 +74,7 @@ exports.group_invite = asyncHandler(async(req,res,next)=>{
     });
 })
 
+//Show All Group to all User
 exports.View_Group = asyncHandler(async(req,res,next)=>{
     const user =  req.user._id 
     if(!user){
@@ -96,6 +100,7 @@ exports.View_Group = asyncHandler(async(req,res,next)=>{
     }); 
 })
 
+// Find Group By ID 
 exports.Find_Group_Id = asyncHandler(async(req,res,next)=>{
     const {groupId} = req.body;
     if(!groupId){
@@ -114,7 +119,95 @@ exports.Find_Group_Id = asyncHandler(async(req,res,next)=>{
     }); 
 });
 
+//Add Fund OF Memeber 
+exports.addFundToMember = asyncHandler(async(req,res,next)=>{
+    const { groupId, userId, amount} = req.body;
+    if(!groupId || !userId || amount === undefined){
+        return res.status(400).json({
+            status: 'fail',
+            message: 'Group ID, User ID, and Amount are required',
+        });
+    }
+    const group = await  Group.findById(groupId)
+    if(!group){
+        return res.status(404).json({
+            status: 'fail',
+            message: 'Group not found',
+        });
+    }
 
+    const member = group.members.find(mm => mm.userId.toString() === userId)
+    if(!member){
+        return res.status(404).json({
+            status: 'fail',
+            message: 'Member not found in the group',
+        });
+    }
+    member.individualAmount += amount;
+    member.fundAddedAt.push({
+        amount: amount,
+        date: new Date(),
+    })
+    group.totalBudget = group.members.reduce(
+        (sum, member) => sum + (member.individualAmount || 0),
+        0
+    );
+    await group.save();
+    send_PAYMENT_ADDED_EMAIL(member.email, member.name, group.Groupname, amount, member.individualAmount, group.totalBudget);
+    saveAmountData = {
+        userId: member.userId,
+        name : member.name,
+        email: member.email,
+        updatedAmount: member.individualAmount,
+        fundHistory: member.fundAddedAt,
+        totalBudget: group.totalBudget,
+    }
+    res.status(200).json({
+        status: 'success',
+        message: 'Add Fund of Memeber',
+        data :{
+            saveAmountData
+        }
+    }); 
+})
+
+//Add Memeber In the Group
+exports.addMemberToGroup = asyncHandler(async (req, res, next) => {
+    const { groupId } = req.body;
+    const { userId, name, email } = req.user;
+    if (!groupId || !userId || !name || !email) {
+        return res.status(400).json({ message: 'Group ID, User ID, name, and email are required' });
+    }
+    const group = await Group.findById(groupId);
+    if (!group) {
+        return res.status(404).json({ message: 'Group not found' });
+    }
+    const isAlreadyMember = group.members.some(member => member.userId.toString() === userId);
+    if (isAlreadyMember) {
+        return res.status(400).json({ message: 'User is already a member of this group' });
+    }
+    group.members.push({
+        userId,
+        name,
+        email,
+        role: 'member',
+        status: 'active',
+    });
+
+    await group.save();
+
+    res.status(200).json({
+        status: 'success',
+        message: 'Member added successfully',
+        data: {
+            groupId,
+            userId,
+            name,
+            email,
+            status: 'active',
+        },
+    });
+});
 
 
 

@@ -1,6 +1,5 @@
 const mongoose = require('mongoose')
 
-
 const groupSchema = new mongoose.Schema({
   Groupname: {
       type: String,
@@ -19,6 +18,11 @@ const groupSchema = new mongoose.Schema({
           required: function () {
             return this.status === 'active';
           }
+        },
+        name: {
+          type: String,
+          required: true,
+          lowercase: true,
         },
         email: {
           type: String,
@@ -39,6 +43,19 @@ const groupSchema = new mongoose.Schema({
           type: Date,
           default: Date.now,
         },
+        individualAmount: {
+          type: Number,
+          default: 0, 
+        },
+        fundAddedAt: [
+          {
+            amount: Number,
+            date: {
+              type: Date,
+              default: Date.now,
+            },
+          },
+        ],
       },
   ],
   totalBudget: {
@@ -51,7 +68,10 @@ const groupSchema = new mongoose.Schema({
 }
 );
 groupSchema.pre('save', function (next) {
-    this.updatedAt = Date.now();
-    next();
+  this.totalBudget = this.members.reduce(
+    (sum, member) => sum + (member.individualAmount || 0),
+    0
+  );
+  next();
 });
 module.exports = mongoose.model('Group' , groupSchema)
