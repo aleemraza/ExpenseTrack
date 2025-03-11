@@ -40,8 +40,8 @@ exports.Create_Group = asyncHandler(async(req,res,next)=>{
 
 //Invite User By email To add Groups 
 exports.group_invite = asyncHandler(async(req,res,next)=>{
-    const {email} = req.body;
-    const {groupId} = req.params;
+    const {email,groupId} = req.body;
+    console.log(email,groupId)
     const userId = req.user.id;
     if(!email){
         return res.status(400).json({ message: 'Email is required' });
@@ -80,7 +80,12 @@ exports.View_Group = asyncHandler(async(req,res,next)=>{
     if(!user){
         return res.status(400).json({ message: 'User Not login' });
     }
-    const groups = await Group.find({createdBy: user});
+    const groups = await Group.find({
+        $or:[
+            {createdBy: user},
+            {"members.email": req.user.email}
+       ]
+    });
     if (!groups) {
         return res.status(404).json({ status: 'fail', message: 'No groups found' });
     }
@@ -171,10 +176,15 @@ exports.addFundToMember = asyncHandler(async(req,res,next)=>{
     }); 
 })
 
+
 //Add Memeber In the Group
 exports.addMemberToGroup = asyncHandler(async (req, res, next) => {
-    const { groupId } = req.body;
-    const { userId, name, email } = req.user;
+    const { groupId,userId } = req.body;
+    const user = await User.findById(userId)
+    if(!user){
+        return res.status(400).json({ message: 'User Not Found' });
+    }
+    const  {name,email} = user
     if (!groupId || !userId || !name || !email) {
         return res.status(400).json({ message: 'Group ID, User ID, name, and email are required' });
     }
@@ -193,13 +203,11 @@ exports.addMemberToGroup = asyncHandler(async (req, res, next) => {
         role: 'member',
         status: 'active',
     });
-
     await group.save();
-
     res.status(200).json({
         status: 'success',
         message: 'Member added successfully',
-        data: {
+        data:{
             groupId,
             userId,
             name,

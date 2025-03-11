@@ -64,8 +64,9 @@ exports.SignUp = asyncHandler(async(req,res,next)=>{
             if (group) {
                 const member = group.members.find(m => m.email.toLowerCase() === email.toLowerCase());
                 if (member) {
-                    console.log("Updating member status...");
+                    console.log('register user')
                     member.userId = newUser._id;
+                    member.name = newUser.name;
                     member.status = "active";
                     await group.save();
                 }

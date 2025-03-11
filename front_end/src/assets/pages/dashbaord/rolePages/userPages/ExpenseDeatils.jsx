@@ -17,7 +17,7 @@ import { BiSolidReport } from "react-icons/bi";
 const ExpenseDeatils = () => {
     const  { groupId  } = useParams();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [selectedMenu, setSelectedMenu] = useState("Add Member");
+    const [selectedMenu, setSelectedMenu] = useState("Group_Display");
 
     const renderContent = () => {
       switch (selectedMenu) {
@@ -45,52 +45,52 @@ const ExpenseDeatils = () => {
     <ul class="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-12">
                       <li class={`flex items-center cursor-pointer outline-none group ${selectedMenu === 'Group_Display'}`}
                     onClick={() => setSelectedMenu('Group_Display')}>
-                      <span className='text-indigo-600'>
+                      <span className={`${selectedMenu === "Group_Display" ? 'text-indigo-600' : 'text-black'} group-hover:text-indigo-600`}>
                         <BsHouseDashFill size={24} />
                       </span>
                         <span
-                            class="font-normal text-lg leading-8 text-indigo-600 ml-2 mr-3 transition-all duration-500 group-hover:text-indigo-600">Main</span>
+                            class= {`font-normal text-lg leading-8 ${selectedMenu === "Group_Display" ? 'text-indigo-600' : 'text-black'} ml-2 mr-3 transition-all duration-500 group-hover:text-indigo-600`}>Main</span>
                     </li>
 
                     <li class={`flex items-center cursor-pointer outline-none group ${selectedMenu === 'Add_Memeber'}`}
                     onClick={() => setSelectedMenu('Add_Memeber')}>
-                        <span className='stroke-black group-hover:text-indigo-600'>
+                        <span className={`${selectedMenu === "Add_Memeber" ? 'text-indigo-600' : 'text-black'} group-hover:text-indigo-600`}>
                         <IoPersonAddSharp size={24} />
                         </span>
                         <span
-                            class="font-normal text-lg leading-8 text-black pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600">Add Memeber</span>
+                            class={`font-normal text-lg leading-8 ${selectedMenu === "Add_Memeber" ? 'text-indigo-600' : 'text-black'} pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600`}>Add Memeber</span>
                     </li>
                     
                     <li class={`flex items-center cursor-pointer outline-none group ${selectedMenu === 'Add_Daily_Expenses'}`}
                     onClick={() => setSelectedMenu('Add_Daily_Expenses')}
                     >
-                        <span className='stroke-black group-hover:text-indigo-600'>
+                        <span className={`${selectedMenu === "Add_Daily_Expenses" ? 'text-indigo-600' : 'text-black'} group-hover:text-indigo-600`}>
                         <RiMoneyDollarCircleFill size={24} />
                         </span>
                         <span
-                            class="font-normal text-lg leading-8 text-black pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600">Add Daily Expenses</span>
+                            class={`font-normal text-lg leading-8 ${selectedMenu === "Add_Daily_Expenses" ? 'text-indigo-600' : 'text-black'} pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600`}>Add Daily Expenses</span>
                     </li>
 
 
                     <li class={`flex items-center cursor-pointer outline-none group ${selectedMenu === 'Add_Fund_of_Member'}`}
                     onClick={() => setSelectedMenu('Add_Fund_of_Member')}
                     >
-                        <span className='stroke-black group-hover:text-indigo-600'>
+                        <span className={`group-hover:text-indigo-600 ${selectedMenu === "Add_Fund_of_Member" ? 'text-indigo-600' : 'text-black'}`}>
                         <RiFundsFill size={24} />
                         </span>
                         <span
-                            class="font-normal text-lg leading-8 text-black pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600">Add Fund of Member</span>
+                            class= {`font-normal text-lg leading-8 ${selectedMenu === "Add_Fund_of_Member" ? 'text-indigo-600' : 'text-black'} pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600`}>Add Fund of Member</span>
                     </li>
 
 
                     <li class={`flex items-center cursor-pointer outline-none group ${selectedMenu === 'GenrateReport'}`}
                     onClick={() => setSelectedMenu('GenrateReport')}
                     >
-                        <span className='stroke-black group-hover:text-indigo-600'>
+                        <span className={`${selectedMenu === "GenrateReport" ? 'text-indigo-600' : 'text-black'} group-hover:text-indigo-600`}>
                         <BiSolidReport size={24} />
                         </span>
                         <span
-                            class="font-normal text-lg leading-8 text-black pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600">Generate Report</span>
+                            class={`font-normal text-lg leading-8 ${selectedMenu === "GenrateReport" ? 'text-indigo-600' : 'text-black'} pl-2 pr-3 transition-all duration-500 group-hover:text-indigo-600`}>Generate Report</span>
                     </li>
                 </ul>
     </div>

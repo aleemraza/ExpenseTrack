@@ -1,10 +1,10 @@
-import {createSlice, createAsyncThunk,} from '@reduxjs/toolkit'
+import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
 
 // BASE_URL OF OVER API
 const USER_API_URL = "http://192.168.100.204:8080/api/flat/group";
 
-export const Create_Group_Api = createAsyncThunk('group/create_group', async({Groupname,totalBudget}, thunkAPI)=>{
-    console.log(Groupname,totalBudget)
+export const Create_Group_Api = createAsyncThunk('group/create_group', async({Groupname}, thunkAPI)=>{
+    console.log(Groupname)
     try{
         const token = localStorage.getItem('token')
         const res = await fetch(`${USER_API_URL}/create_group`,{
@@ -14,13 +14,11 @@ export const Create_Group_Api = createAsyncThunk('group/create_group', async({Gr
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-               Groupname,
-               totalBudget
+               Groupname
             }),
             credentials: 'include'
         });
         const res_data = await res.json()
-        console.log(res_data)
         if(res.ok){
             console.log(res_data)
         }else{
@@ -30,7 +28,6 @@ export const Create_Group_Api = createAsyncThunk('group/create_group', async({Gr
         return thunkAPI.rejectWithValue(error.message)
     }
 })
-
 
 export const View_Group_Api = createAsyncThunk('group/View_Group_Api', async( thunkAPI)=>{
     try{
@@ -77,6 +74,63 @@ export const find_Group_Api = createAsyncThunk('group/find_Group_Api', async(thu
     }
 })
 
+
+export  const ADD_MEMBER_API = createAsyncThunk('group/ADD_MEMBER_API', async({groupId,userId},thunkAPI)=>{
+    try{
+        const token = localStorage.getItem('token')
+        console.log(token)
+        const res = await fetch(`${USER_API_URL}/Add_NEW_Member`,{
+            method:"POST",
+            headers:{
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            }, 
+            body: JSON.stringify({
+                groupId,
+                userId
+            }),
+            credentials: 'include'
+        })
+        const res_results = await res.json()
+        console.log(res_results)
+        if(res.ok){
+            return res_results
+        }else{
+            return thunkAPI.rejectWithValue(res_results.message || "ADD MEMEBER FAILED")
+
+        }
+    }catch(error){
+        return thunkAPI.rejectWithValue(error.message)
+    }
+}) 
+
+export const Invite_User_Jion_Group = createAsyncThunk('group/Invite_User_Jion_Group', async({email,groupId},thunkAPI)=>{
+    try{
+        console.log(email,groupId)
+        const token = localStorage.getItem('token')
+        const res = await fetch(`${USER_API_URL}/Invite_Group_Member`,{
+            method: "POST",
+            headers:{
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email,
+                groupId
+            }),
+            credentials:"include"
+        })
+        const res_results = await res.json()
+        console.log(res_results)
+        if(res.ok){
+            return res_results
+        }else{
+            return thunkAPI.rejectWithValue(res_results.message || "Failed To Invite The User")
+        }
+    }catch(error){
+        return thunkAPI.rejectWithValue(error.message)
+    }
+})
 const initialState = {
     user: null,
     token: localStorage.getItem('token')|| null,
@@ -137,6 +191,21 @@ const Group_API_Handel_Slice = createSlice({
         }) 
 
 
+        .addCase(ADD_MEMBER_API.pending, (state) => {
+            state.isLoading = true;
+            state.isError = false;
+            state.errorMessage = null;
+        })
+        .addCase(ADD_MEMBER_API.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.currentUser = action.payload;
+            state.isAuthenticated= true;
+          })
+        .addCase(ADD_MEMBER_API.rejected, (state, action) => {
+            state.isLoading = false;
+            state.isError = true;
+            state.errorMessage = action.payload || 'View All  Group failed';
+        }) 
         .addCase(find_Group_Api.pending, (state) => {
             state.isLoading = true;
             state.isError = false;
@@ -153,7 +222,21 @@ const Group_API_Handel_Slice = createSlice({
             state.errorMessage = action.payload || 'View All  Group failed';
         }) 
 
-
+        .addCase(Invite_User_Jion_Group.pending, (state) => {
+            state.isLoading = true;
+            state.isError = false;
+            state.errorMessage = null;
+        })
+        .addCase(Invite_User_Jion_Group.fulfilled, (state, action) => {
+            state.isLoading = false;
+            state.currentUser = action.payload;
+            state.isAuthenticated= true;
+          })
+        .addCase(Invite_User_Jion_Group.rejected, (state, action) => {
+            state.isLoading = false;
+            state.isError = true;
+            state.errorMessage = action.payload || 'View All  Group failed';
+        }) 
     }
 })
 export default Group_API_Handel_Slice.reducer;

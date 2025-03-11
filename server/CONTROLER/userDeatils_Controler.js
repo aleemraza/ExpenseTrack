@@ -27,75 +27,61 @@ exports.AllUser = asyncHandler(async(req,res,next)=>{
 })
 
 exports.AllUsersWithGroupStatus = asyncHandler(async(req,res,next)=>{
-    const { groupId, email } = req.body;
-    // If neither email nor groupId is provided, return an error
-    if (!email && !groupId) {
-        return res.status(400).json({
-            status: 'fail',
-            message: 'Email or Group ID is required',
-        });
-    }
-    if (email) {
-        const user_email = await User.findOne({ email });
-        if (!user_email) {
-            return res.status(404).json({
-                status: 'fail',
-                message: 'User not found',
-            });
-        }
-        if (groupId) {
-            const group = await Group.findById(groupId);
-            if (!group) {
-                return res.status(404).json({
-                    status: 'fail',
-                    message: 'Group not found',
-                });
-            }
-            const groupMembers = group.members.map(member => member.userId.toString());
-            const userWithStatus = {
-                _id: user_email._id,
-                name: user_email.name,
-                email: user_email.email,
-                userStatus: groupMembers.includes(user_email._id.toString())
-                    ? 'Already a member of the group'
-                    : 'Not a member of the group',
-            };
-            return res.status(200).json({
-                status: 'success',
-                message: 'User details with group status',
-                data: { userWithStatus },
-            });
-        }
-    }
+    const { groupId, email } = req.query;
+    let group = null;
     if (groupId) {
-        const group = await Group.findById(groupId);
+        group = await Group.findById(groupId);
         if (!group) {
             return res.status(404).json({
                 status: 'fail',
                 message: 'Group not found',
             });
         }
-
-        const users = await User.find();
-        if (!users || users.length === 0) {
+    }
+    if (email) {
+        const user = await User.findOne({ email });
+        if (!user) {
             return res.status(404).json({
                 status: 'fail',
-                message: 'No users found',
+                message: 'User not found',
             });
         }
-        const groupMembers = group.members.map(member => member.userId.toString());
-        const usersWithStatus = users.map(user => ({
-            _id: user._id,
-            name: user.name,
-            email: user.email,
-            userStatus: groupMembers.includes(user._id.toString())
-                ? 'Already a member of the group'
-                : 'Not a member of the group',
-        }));
+        let userStatus = 'Not a member of any group';
+        if (group) {
+            const isMember = group.members.some(member => member.userId.toString() === user._id.toString());
+            userStatus = isMember ? 'Already a member of the group' : 'Not a member of the group';
+        }
         return res.status(200).json({
             status: 'success',
-            message: 'All users with group membership status',
-            data: { usersWithStatus },
+            message: 'User details with group status',
+            data: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                userStatus,
+            },
         });
     }
+ // Deafult Data 
+    const users = await User.find();
+    if (!users || users.length === 0) {
+        return res.status(404).json({
+            status: 'fail',
+            message: 'No users found',
+        });
+    }
+    const groupMembers = group ? group.members.map(member => member.userId.toString()) : [];
+    const usersWithStatus = users.map(user => ({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role : user.role,
+        userStatus: group ? (groupMembers.includes(user._id.toString()) ? 'Already a member of the group' : 'Not a member of the group') : 'Not a member of any group',
+    }));
+    return res.status(200).json({
+        status: 'success',
+        message: 'All users with group membership status',
+        data: usersWithStatus,
+    });
 });
